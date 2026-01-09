@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Tareas - JS Vanilla</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+    <header>
+        <h1>Mis Tareas Pendientes</h1>
+    </header>
+
+    <main class="container">
+        
+        <section class="input-section">
+            <form id="todo-form">
+                <input type="text" id="todo-input" placeholder="¿Qué necesitas hacer hoy?" autocomplete="off">
+                <button type="submit" id="add-btn">Agregar</button>
+            </form>
+            <p id="error-msg" class="hidden">⚠️ Por favor, escribe una tarea.</p>
+        </section>
+
+        <section class="list-section">
+            <div class="stats">
+                <p>Pendientes: <span id="count">0</span></p>
+            </div>
+            <ul id="todo-list">
+                </ul>
+        </section>
+    </main>
+
+    <footer>
+        <p>Desarrollado con HTML, CSS y JS Vanilla</p>
+    </footer>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
