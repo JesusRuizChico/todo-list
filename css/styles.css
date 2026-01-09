@@ -1,20 +1,24 @@
-/* --- VARIABLES: Paleta de Colores Amistosa --- */
+/* --- VARIABLES: Paleta Vibrante --- */
 :root {
-    --primary-color: #8e44ad; 
-    --primary-light: #a569bd; 
-    --bg-color: #f8f9fd; 
-    --text-color: #2c3e50; 
-    --danger-color: #e74c3c; 
-    --success-color: #00b894; 
-    --border-color: #dfe6e9; 
+    --primary-color: #6c5ce7; 
+    --bg-color: #dfe6e9;
+    --text-color: #2d3436;
+    
+    /* Colores de Estado */
+    --pending-bg: #ffeaa7; /* Amarillo pastel */
+    --pending-border: #fdcb6e;
+    --completed-bg: #55efc4; /* Verde menta vibrante */
+    --completed-border: #00b894;
+    
+    --danger-color: #ff7675;
 }
 
-/* --- RESET & FUENTES --- */
+/* --- CONFIGURACIÓN BÁSICA --- */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 body {
@@ -23,257 +27,232 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    line-height: 1.6;
 }
 
-/* --- HEADER & FOOTER --- */
+/* --- HEADER --- */
 header {
+    background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+    padding: 2rem;
     text-align: center;
-    padding: 2rem 1rem;
-    background: white;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
+    box-shadow: 0 4px 15px rgba(108, 92, 231, 0.2);
 }
 
 header h1 {
-    color: var(--primary-color);
-    font-weight: 700;
-    letter-spacing: -1px;
+    color: white;
+    font-size: 2rem;
+    text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
 }
 
-footer {
-    text-align: center;
-    padding: 1.5rem;
-    margin-top: auto;
-    font-size: 0.9rem;
-    color: #7f8c8d;
-}
-
-/* --- CONTENEDOR PRINCIPAL --- */
+/* --- CONTENEDOR --- */
 .container {
     width: 90%;
     max-width: 600px;
-    margin: 3rem auto;
+    margin: -30px auto 2rem; /* Efecto superpuesto al header */
     background: white;
-    padding: 2.5rem;
-    border-radius: 20px; 
-    box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
+    padding: 2rem;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    position: relative;
 }
 
-/* --- FORMULARIO & FILTRO --- */
+/* --- FORMULARIO --- */
 #todo-form {
     display: flex;
     gap: 10px;
-    position: relative;
-    flex-wrap: wrap; 
+    margin-bottom: 10px;
 }
 
 input[type="text"] {
-    flex-grow: 1; 
+    flex-grow: 1;
     padding: 15px;
-    border: 2px solid var(--border-color);
-    border-radius: 12px;
+    border: 2px solid #eee;
+    border-radius: 15px;
     font-size: 1.1rem;
-    transition: border-color 0.3s, box-shadow 0.3s;
+    transition: 0.3s;
     outline: none;
-    min-width: 200px;
 }
 
 input[type="text"]:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 4px rgba(142, 68, 173, 0.1);
+    transform: scale(1.02); /* Pequeño zoom al escribir */
+}
+
+/* Animación de temblor para error */
+.shake {
+    animation: shake 0.5s ease-in-out;
+    border-color: var(--danger-color) !important;
 }
 
 button#add-btn {
-    padding: 0 20px;
-    background-color: var(--primary-color);
+    background: var(--primary-color);
     color: white;
     border: none;
-    border-radius: 12px;
+    padding: 0 20px;
+    border-radius: 15px;
     cursor: pointer;
-    font-weight: 600;
-    font-size: 1.2rem;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 6px rgba(142, 68, 173, 0.2);
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 button#add-btn:hover {
-    background-color: var(--primary-light);
-    transform: translateY(-2px);
+    background: #5649c0;
+    transform: rotate(90deg); /* El botón gira al pasar el mouse */
 }
 
-/* Estilos del Select (Filtro) */
+/* Filtro */
 .select-container {
     position: relative;
-    min-width: 120px;
 }
-
 select.filter-todo {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    background-color: white;
-    color: var(--primary-color);
-    width: 100%;
     height: 100%;
-    padding: 10px 15px;
-    border: 2px solid var(--border-color);
-    border-radius: 12px;
-    cursor: pointer;
-    font-size: 1rem;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    outline: none;
-}
-
-select.filter-todo:hover,
-select.filter-todo:focus {
-    border-color: var(--primary-color);
-}
-
-/* Mensaje de Error */
-.hidden {
-    display: none;
-    opacity: 0;
-}
-
-#error-msg {
-    color: var(--danger-color);
-    font-size: 0.9rem;
-    margin-top: 10px;
-    padding-left: 5px;
-    animation: fadeIn 0.3s ease-in;
-}
-
-/* --- ESTADÍSTICAS --- */
-.stats {
-    margin-top: 1.5rem;
-    margin-bottom: 1rem;
-    font-size: 0.95rem;
-    color: #7f8c8d;
-    text-align: right;
-    font-weight: 500;
-}
-
-.stats span {
-    color: var(--primary-color);
+    padding: 0 15px;
+    border: 2px solid #eee;
+    border-radius: 15px;
+    background: white;
+    color: var(--text-color);
     font-weight: bold;
+    cursor: pointer;
+    outline: none;
 }
 
 /* --- LISTA DE TAREAS --- */
 ul {
     list-style: none;
+    margin-top: 20px;
 }
 
 .todo-item {
-    background: white;
-    border: 1px solid var(--border-color);
+    /* ESTADO PENDIENTE (AMARILLO) */
+    background-color: var(--pending-bg);
+    border-left: 5px solid var(--pending-border);
     padding: 15px;
-    margin-bottom: 12px;
-    border-radius: 12px;
+    margin-bottom: 15px;
+    border-radius: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
-    animation: slideIn 0.4s ease-out forwards;
-}
-
-.todo-item:hover {
-    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-    border-color: var(--primary-light);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    
+    /* Animación de entrada */
+    animation: slideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
 }
 
 .todo-item span {
     flex-grow: 1;
-    margin-left: 15px;
-    font-size: 1.05rem;
-    cursor: pointer;
-    word-break: break-word;
+    margin: 0 15px;
+    font-weight: 500;
+    transition: 0.3s;
 }
 
-/* Estado Completado */
+/* --- ESTADO COMPLETADO (VERDE) --- */
 .completed {
-    background-color: #f0fff4;
-    border-color: #c3e6cb;
+    background-color: var(--completed-bg) !important;
+    border-left: 5px solid var(--completed-border) !important;
+    transform: scale(0.98); /* Se hace un pelín más pequeña */
+    opacity: 0.9;
 }
 
 .completed span {
     text-decoration: line-through;
-    color: #aaa;
+    color: #2d3436;
+    opacity: 0.6;
 }
 
-/* Botones de la tarea */
-.btn-check {
-    background: transparent;
-    border: 2px solid var(--success-color);
-    color: var(--success-color);
+/* BOTONES DE ACCIÓN */
+.btn-check, .btn-delete {
+    border: none;
+    background: white;
+    width: 35px;
+    height: 35px;
     border-radius: 50%;
-    width: 28px;
-    height: 28px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.1rem;
-    transition: all 0.2s;
-    flex-shrink: 0;
+    font-size: 1.2rem;
+    transition: 0.3s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.btn-check { color: var(--completed-border); }
+.btn-delete { color: var(--danger-color); }
+
+.btn-delete:hover {
+    background: var(--danger-color);
+    color: white;
+    transform: rotate(180deg); /* Gira al querer borrar */
 }
 
 .completed .btn-check {
-    background: var(--success-color);
+    background: var(--completed-border);
     color: white;
+    /* Animación POP al completar */
+    animation: pop 0.4s ease;
 }
 
-.btn-delete {
-    background: transparent;
-    color: #aaa;
-    border: none;
-    padding: 8px;
-    border-radius: 8px;
-    cursor: pointer;
-    margin-left: 10px;
-    font-size: 1.1rem;
-    transition: all 0.2s;
-    flex-shrink: 0;
+/* --- ESTADO VACÍO (EMPTY STATE) --- */
+#empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: #b2bec3;
+    animation: fadeIn 0.5s;
+}
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 10px;
+    color: #dfe6e9;
 }
 
-.btn-delete:hover {
-    background: #ffebeb;
-    color: var(--danger-color);
-}
-
-/* --- ANIMACIONES --- */
+/* --- ANIMACIONES KEYFRAMES --- */
 @keyframes slideIn {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.fall {
-    animation: slideOut 0.5s ease-in forwards;
+    0% { transform: translateY(50px) scale(0.8); opacity: 0; }
+    100% { transform: translateY(0) scale(1); opacity: 1; }
 }
 
 @keyframes slideOut {
-    to { opacity: 0; transform: translateX(50px); }
+    0% { transform: scale(1); opacity: 1; }
+    100% { 
+        transform: translateX(100px) scale(0); /* Se encoge y vuela a la derecha */
+        opacity: 0; 
+    }
+}
+
+@keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.4); } /* Rebote grande */
+    100% { transform: scale(1); }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from { opacity: 0; } to { opacity: 1; }
 }
 
-/* --- RESPONSIVE --- */
-@media (max-width: 480px) {
-    .container {
-        width: 95%;
-        padding: 1.5rem;
-        margin-top: 1rem;
-    }
-    
-    #todo-form {
-        flex-direction: column;
-    }
-    
-    input[type="text"], button#add-btn, .select-container, select.filter-todo {
-        width: 100%;
-    }
+/* Clase para activar animación de salida */
+.fall {
+    animation: slideOut 0.6s forwards ease-in-out;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    margin-top: auto;
+    padding: 1rem;
+    color: #636e72;
+}
+.hidden { display: none !important; }
+
+/* Responsive */
+@media (max-width: 500px) {
+    #todo-form { flex-wrap: wrap; }
+    input[type="text"] { width: 100%; order: 1; }
+    button#add-btn { flex-grow: 1; order: 2; height: 50px; }
+    .select-container { flex-grow: 1; order: 3; }
 }

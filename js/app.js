@@ -2,78 +2,73 @@
 const todoForm = document.getElementById('todo-form');
 const todoInput = document.getElementById('todo-input');
 const todoList = document.getElementById('todo-list');
-const errorMsg = document.getElementById('error-msg');
 const countSpan = document.getElementById('count');
 const filterOption = document.querySelector('.filter-todo');
+const emptyState = document.getElementById('empty-state');
 
-// --- EVENT LISTENERS ---
-// 1. Al cargar la página, recuperamos las tareas del LocalStorage
+// --- EVENTOS ---
 document.addEventListener('DOMContentLoaded', getTodos);
 todoForm.addEventListener('submit', addTask);
 todoList.addEventListener('click', manageTask);
 filterOption.addEventListener('change', filterTodo);
 
-// --- FUNCIONES PRINCIPALES ---
+// --- FUNCIONES ---
 
 function addTask(e) {
     e.preventDefault();
     const taskText = todoInput.value.trim();
 
-    // Validación
+    // Validación con animación SHAKE
     if (taskText === '') {
-        errorMsg.classList.remove('hidden');
-        todoInput.focus();
+        todoInput.classList.add('shake');
+        // Quitamos la clase después de que termine la animación para poder usarla de nuevo
+        setTimeout(() => {
+            todoInput.classList.remove('shake');
+        }, 500);
         return;
-    } else {
-        errorMsg.classList.add('hidden');
     }
 
-    // Crear visualmente
     createTaskElement(taskText, false);
-    
-    // GUARDAR EN LOCALSTORAGE
     saveLocalTodos(taskText, false);
 
     todoInput.value = '';
-    updateCount();
+    updateUI(); // Actualiza contador y estado vacío
 }
 
 function manageTask(e) {
     const item = e.target;
-    const todoElement = item.closest('.todo-item'); 
-    
+    // Usamos closest para detectar click en el botón o el icono dentro
+    const btnDelete = item.closest('.btn-delete');
+    const btnCheck = item.closest('.btn-check');
+    const todoElement = item.closest('.todo-item');
+
     if (!todoElement) return;
 
-    // A. Eliminar tarea con CONFIRMACIÓN
-    if (item.classList.contains('btn-delete')) {
-        const confirmDelete = confirm("¿Estás seguro de que deseas eliminar esta tarea?");
-        
-        if (confirmDelete) {
+    // A. ELIMINAR
+    if (btnDelete) {
+        if (confirm("¿Borrar esta Tareas?")) {
             todoElement.classList.add('fall');
-            
-            // BORRAR DEL LOCALSTORAGE
             removeLocalTodos(todoElement);
-
-            todoElement.addEventListener('transitionend', function() {
+            
+            todoElement.addEventListener('animationend', function() {
                 todoElement.remove();
-                updateCount();
-                // Actualizar filtro
+                updateUI();
+                // Forzar actualización del filtro
                 const event = { target: filterOption };
-                filterTodo(event); 
+                filterTodo(event);
             });
         }
     }
 
-    // B. Marcar como completada
-    if (item.classList.contains('btn-check') || item.tagName === 'SPAN') {
+    // B. COMPLETAR
+    if (btnCheck || item.tagName === 'SPAN') {
         todoElement.classList.toggle('completed');
-        
-        // ACTUALIZAR ESTADO EN LOCALSTORAGE
         updateLocalTodoState(todoElement);
+        updateUI();
         
-        updateCount();
+        // Actualizar filtro dinámicamente
         const event = { target: filterOption };
-        filterTodo(event); 
+        filterTodo(event);
     }
 }
 
@@ -82,7 +77,7 @@ function filterTodo(e) {
     const filterValue = e.target ? e.target.value : filterOption.value;
 
     todos.forEach(function(todo) {
-        if (todo.nodeType === 1) { 
+        if (todo.nodeType === 1) {
             switch (filterValue) {
                 case "all":
                     todo.style.display = "flex";
@@ -106,14 +101,29 @@ function filterTodo(e) {
     });
 }
 
-// Función auxiliar para crear HTML
+// Función centralizada para actualizar la interfaz (Contador + Estado Vacío)
+function updateUI() {
+    const totalTasks = todoList.children.length;
+    const pendingTasks = document.querySelectorAll('.todo-item:not(.completed)').length;
+    
+    countSpan.innerText = pendingTasks;
+
+    // Mostrar/Ocultar imagen de "Lista Vacía"
+    if (totalTasks === 0) {
+        emptyState.classList.remove('hidden');
+    } else {
+        emptyState.classList.add('hidden');
+    }
+}
+
 function createTaskElement(text, isCompleted) {
     const li = document.createElement('li');
     li.classList.add('todo-item');
     if (isCompleted) li.classList.add('completed');
 
+    // Botón Check con icono
     const checkBtn = document.createElement('button');
-    checkBtn.innerHTML = '✓';
+    checkBtn.innerHTML = '<span class="material-icons-round">check</span>';
     checkBtn.classList.add('btn-check');
     li.appendChild(checkBtn);
 
@@ -121,57 +131,44 @@ function createTaskElement(text, isCompleted) {
     span.innerText = text;
     li.appendChild(span);
 
+    // Botón Delete con icono
     const deleteBtn = document.createElement('button');
-    deleteBtn.innerHTML = '✕';
+    deleteBtn.innerHTML = '<span class="material-icons-round">delete</span>';
     deleteBtn.classList.add('btn-delete');
     li.appendChild(deleteBtn);
 
+    // Insertar arriba
     todoList.insertBefore(li, todoList.firstChild); 
 }
 
-function updateCount() {
-    const pendingTasks = document.querySelectorAll('.todo-item:not(.completed)').length;
-    countSpan.innerText = pendingTasks;
-}
+// --- LOCAL STORAGE ---
 
-// --- FUNCIONES DE LOCALSTORAGE (PERSISTENCIA) ---
-
-// 1. Revisar si ya hay cosas guardadas
 function checkLocalStorage() {
-    if (localStorage.getItem('todos') === null) {
-        return [];
-    } else {
-        return JSON.parse(localStorage.getItem('todos'));
-    }
+    return localStorage.getItem('todos') === null ? [] : JSON.parse(localStorage.getItem('todos'));
 }
 
-// 2. Guardar nueva tarea
 function saveLocalTodos(todoText, isCompleted) {
     let todos = checkLocalStorage();
     todos.push({ text: todoText, completed: isCompleted });
     localStorage.setItem('todos', JSON.stringify(todos));
 }
 
-// 3. Leer tareas al cargar la página
 function getTodos() {
     let todos = checkLocalStorage();
-    // Invertimos el array para que al insertar se respete el orden visual
     todos.slice().reverse().forEach(function(todoObj) {
         createTaskElement(todoObj.text, todoObj.completed);
     });
-    updateCount();
+    updateUI();
 }
 
-// 4. Borrar tarea de memoria
 function removeLocalTodos(todoElement) {
     let todos = checkLocalStorage();
     const todoText = todoElement.querySelector('span').innerText;
-    // Filtramos para quitar la que coincida
+    // Quitamos solo el que coincide
     const updatedTodos = todos.filter(todo => todo.text !== todoText);
     localStorage.setItem('todos', JSON.stringify(updatedTodos));
 }
 
-// 5. Actualizar si está completada o no en memoria
 function updateLocalTodoState(todoElement) {
     let todos = checkLocalStorage();
     const todoText = todoElement.querySelector('span').innerText;
