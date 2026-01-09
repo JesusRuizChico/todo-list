@@ -6,132 +6,149 @@ const errorMsg = document.getElementById('error-msg');
 const countSpan = document.getElementById('count');
 
 // --- EVENT LISTENERS ---
-document.addEventListener('DOMContentLoaded', getTodos); // Cargar al iniciar
+document.addEventListener('DOMContentLoaded', getTodos);
 todoForm.addEventListener('submit', addTask);
 todoList.addEventListener('click', manageTask);
 
 // --- FUNCIONES ---
 
-// 1. Agregar Tarea
 function addTask(e) {
-    e.preventDefault(); // Evitar recarga de página
-
+    e.preventDefault();
     const taskText = todoInput.value.trim();
 
-    // Validación de campo vacío
     if (taskText === '') {
         errorMsg.classList.remove('hidden');
+        todoInput.focus(); // Devolver el foco al input
         return;
     } else {
         errorMsg.classList.add('hidden');
     }
 
-    // Crear estructura HTML de la tarea
+    // Crear estructura HTML (estado pendiente: false)
     createTaskElement(taskText, false);
+    saveLocalTodos(taskText, false); // Guardamos estado inicial
 
-    // Guardar en LocalStorage (PLUS)
-    saveLocalTodos(taskText);
-
-    // Limpiar input y actualizar contador
     todoInput.value = '';
     updateCount();
 }
 
-// 2. Manejar clicks en la lista (Delegación de eventos)
 function manageTask(e) {
     const item = e.target;
-    const todoElement = item.parentElement;
+    // Asegurarnos de seleccionar el elemento LI padre correctamente
+    // (Usamos closest por si se da click en un icono dentro del botón)
+    const todoElement = item.closest('.todo-item'); 
+    
+    if (!todoElement) return; // Si el click no fue dentro de un item, salir.
 
-    // A. Eliminar tarea
+    // A. Eliminar tarea (Si el click fue en el botón de borrar)
     if (item.classList.contains('btn-delete')) {
-        // Confirmación (PLUS)
-        if(confirm("¿Seguro que quieres eliminar esta tarea?")) {
-            todoElement.classList.add('fall'); // Animación opcional
-            removeLocalTodos(todoElement);
+        
+        // Añadimos la clase que activa la animación de salida en CSS
+        todoElement.classList.add('fall'); 
+        
+        removeLocalTodos(todoElement);
+
+        // ESPERAMOS a que termine la animación CSS para remover del DOM
+        todoElement.addEventListener('transitionend', function() {
             todoElement.remove();
             updateCount();
-        }
+        });
+        // Fallback por si transitionend falla en algun navegador raro
+        setTimeout(() => {
+             if(document.body.contains(todoElement)) {
+                 todoElement.remove();
+                 updateCount();
+             }
+        }, 600);
     }
 
-    // B. Marcar como completada
+    // B. Marcar como completada (Si click en botón check o en el texto)
     if (item.classList.contains('btn-check') || item.tagName === 'SPAN') {
-        // Ajuste para clicar en el texto o en el botón
-        const parent = item.tagName === 'SPAN' ? item.parentElement : item.parentElement;
-        parent.classList.toggle('completed');
-        
-        // Actualizar estado en LocalStorage sería más complejo, 
-        // por simplicidad en este nivel solo guardamos texto, 
-        // pero visualmente funciona.
+        todoElement.classList.toggle('completed');
+        // Actualizamos el estado en LocalStorage
+        updateLocalTodoState(todoElement);
         updateCount();
     }
 }
 
-// 3. Función auxiliar para crear el HTML
 function createTaskElement(text, isCompleted) {
     const li = document.createElement('li');
     li.classList.add('todo-item');
     if (isCompleted) li.classList.add('completed');
 
-    // Botón Check
+    // Usamos iconos unicode más bonitos
     const checkBtn = document.createElement('button');
-    checkBtn.innerHTML = '✓';
+    checkBtn.innerHTML = '✓'; // Checkmark simple
     checkBtn.classList.add('btn-check');
     li.appendChild(checkBtn);
 
-    // Texto
     const span = document.createElement('span');
     span.innerText = text;
     li.appendChild(span);
 
-    // Botón Eliminar
     const deleteBtn = document.createElement('button');
-    deleteBtn.innerText = 'X';
+    deleteBtn.innerHTML = '✕'; // Multiplicación (X más estética)
     deleteBtn.classList.add('btn-delete');
     li.appendChild(deleteBtn);
 
-    todoList.appendChild(li);
+    // Insertar al principio de la lista para que las nuevas salgan arriba
+    todoList.insertBefore(li, todoList.firstChild); 
 }
 
-// 4. Actualizar contador
 function updateCount() {
+    // Contamos solo las que NO tienen la clase .completed
     const pendingTasks = document.querySelectorAll('.todo-item:not(.completed)').length;
     countSpan.innerText = pendingTasks;
 }
 
-// --- LOCAL STORAGE (Persistencia de datos) ---
+// --- LOCAL STORAGE MEJORADO (Guarda estado completo/pendiente) ---
 
-function saveLocalTodos(todo) {
-    let todos;
-    if (localStorage.getItem('todos') === null) {
-        todos = [];
-    } else {
-        todos = JSON.parse(localStorage.getItem('todos'));
-    }
-    todos.push(todo);
+function saveLocalTodos(todoText, isCompleted) {
+    let todos = checkLocalStorage();
+    // Guardamos un objeto en lugar de solo texto
+    todos.push({ text: todoText, completed: isCompleted });
     localStorage.setItem('todos', JSON.stringify(todos));
 }
 
 function getTodos() {
-    let todos;
-    if (localStorage.getItem('todos') === null) {
-        todos = [];
-    } else {
-        todos = JSON.parse(localStorage.getItem('todos'));
-    }
-    todos.forEach(function(todo) {
-        createTaskElement(todo, false);
+    let todos = checkLocalStorage();
+    // Invertimos el array para que al cargar se muestren en orden correcto al usar insertBefore
+    todos.slice().reverse().forEach(function(todoObj) {
+        createTaskElement(todoObj.text, todoObj.completed);
     });
     updateCount();
 }
 
 function removeLocalTodos(todoElement) {
-    let todos;
-    if (localStorage.getItem('todos') === null) {
-        todos = [];
-    } else {
-        todos = JSON.parse(localStorage.getItem('todos'));
+    let todos = checkLocalStorage();
+    const todoText = todoElement.querySelector('span').innerText;
+    
+    // Filtramos el array para quitar el que coincida con el texto
+    // (Nota: esto borrará duplicados si tienen el mismo texto exacto, para un MVP está bien)
+    const updatedTodos = todos.filter(todo => todo.text !== todoText);
+    
+    localStorage.setItem('todos', JSON.stringify(updatedTodos));
+}
+
+// Nueva función para actualizar solo el estado
+function updateLocalTodoState(todoElement) {
+    let todos = checkLocalStorage();
+    const todoText = todoElement.querySelector('span').innerText;
+    const isCompleted = todoElement.classList.contains('completed');
+
+    // Buscamos la tarea y actualizamos su propiedad 'completed'
+    const todoIndex = todos.findIndex(todo => todo.text === todoText);
+    if (todoIndex > -1) {
+        todos[todoIndex].completed = isCompleted;
+        localStorage.setItem('todos', JSON.stringify(todos));
     }
-    const todoIndex = todoElement.children[1].innerText;
-    todos.splice(todos.indexOf(todoIndex), 1);
-    localStorage.setItem('todos', JSON.stringify(todos));
+}
+
+// Función auxiliar para no repetir código de chequeo
+function checkLocalStorage() {
+    if (localStorage.getItem('todos') === null) {
+        return [];
+    } else {
+        return JSON.parse(localStorage.getItem('todos'));
+    }
 }
