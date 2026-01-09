@@ -47,7 +47,7 @@ header h1 {
 .container {
     width: 90%;
     max-width: 600px;
-    margin: -30px auto 2rem; /* Efecto superpuesto al header */
+    margin: -30px auto 2rem;
     background: white;
     padding: 2rem;
     border-radius: 20px;
@@ -60,6 +60,7 @@ header h1 {
     display: flex;
     gap: 10px;
     margin-bottom: 10px;
+    flex-wrap: wrap;
 }
 
 input[type="text"] {
@@ -70,14 +71,14 @@ input[type="text"] {
     font-size: 1.1rem;
     transition: 0.3s;
     outline: none;
+    min-width: 200px;
 }
 
 input[type="text"]:focus {
     border-color: var(--primary-color);
-    transform: scale(1.02); /* Pequeño zoom al escribir */
+    transform: scale(1.02);
 }
 
-/* Animación de temblor para error */
 .shake {
     animation: shake 0.5s ease-in-out;
     border-color: var(--danger-color) !important;
@@ -98,16 +99,18 @@ button#add-btn {
 
 button#add-btn:hover {
     background: #5649c0;
-    transform: rotate(90deg); /* El botón gira al pasar el mouse */
+    transform: rotate(90deg);
 }
 
-/* Filtro */
 .select-container {
     position: relative;
+    min-width: 120px;
 }
+
 select.filter-todo {
     height: 100%;
-    padding: 0 15px;
+    width: 100%;
+    padding: 10px 15px;
     border: 2px solid #eee;
     border-radius: 15px;
     background: white;
@@ -124,7 +127,6 @@ ul {
 }
 
 .todo-item {
-    /* ESTADO PENDIENTE (AMARILLO) */
     background-color: var(--pending-bg);
     border-left: 5px solid var(--pending-border);
     padding: 15px;
@@ -134,33 +136,31 @@ ul {
     justify-content: space-between;
     align-items: center;
     box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    
-    /* Animación de entrada */
     animation: slideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
 }
 
-.todo-item span {
+/* AQUÍ ESTÁ EL CAMBIO IMPORTANTE: .todo-text */
+.todo-text {
     flex-grow: 1;
     margin: 0 15px;
     font-weight: 500;
     transition: 0.3s;
+    word-break: break-word;
 }
 
-/* --- ESTADO COMPLETADO (VERDE) --- */
 .completed {
     background-color: var(--completed-bg) !important;
     border-left: 5px solid var(--completed-border) !important;
-    transform: scale(0.98); /* Se hace un pelín más pequeña */
+    transform: scale(0.98);
     opacity: 0.9;
 }
 
-.completed span {
+.completed .todo-text {
     text-decoration: line-through;
     color: #2d3436;
     opacity: 0.6;
 }
 
-/* BOTONES DE ACCIÓN */
 .btn-check, .btn-delete {
     border: none;
     background: white;
@@ -174,6 +174,7 @@ ul {
     font-size: 1.2rem;
     transition: 0.3s;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    flex-shrink: 0;
 }
 
 .btn-check { color: var(--completed-border); }
@@ -182,17 +183,15 @@ ul {
 .btn-delete:hover {
     background: var(--danger-color);
     color: white;
-    transform: rotate(180deg); /* Gira al querer borrar */
+    transform: rotate(180deg);
 }
 
 .completed .btn-check {
     background: var(--completed-border);
     color: white;
-    /* Animación POP al completar */
     animation: pop 0.4s ease;
 }
 
-/* --- ESTADO VACÍO (EMPTY STATE) --- */
 #empty-state {
     text-align: center;
     padding: 2rem;
@@ -205,7 +204,7 @@ ul {
     color: #dfe6e9;
 }
 
-/* --- ANIMACIONES KEYFRAMES --- */
+/* --- ANIMACIONES --- */
 @keyframes slideIn {
     0% { transform: translateY(50px) scale(0.8); opacity: 0; }
     100% { transform: translateY(0) scale(1); opacity: 1; }
@@ -213,15 +212,12 @@ ul {
 
 @keyframes slideOut {
     0% { transform: scale(1); opacity: 1; }
-    100% { 
-        transform: translateX(100px) scale(0); /* Se encoge y vuela a la derecha */
-        opacity: 0; 
-    }
+    100% { transform: translateX(100px) scale(0); opacity: 0; }
 }
 
 @keyframes pop {
     0% { transform: scale(1); }
-    50% { transform: scale(1.4); } /* Rebote grande */
+    50% { transform: scale(1.4); }
     100% { transform: scale(1); }
 }
 
@@ -235,12 +231,10 @@ ul {
     from { opacity: 0; } to { opacity: 1; }
 }
 
-/* Clase para activar animación de salida */
 .fall {
     animation: slideOut 0.6s forwards ease-in-out;
 }
 
-/* Footer */
 footer {
     text-align: center;
     margin-top: auto;
@@ -249,7 +243,6 @@ footer {
 }
 .hidden { display: none !important; }
 
-/* Responsive */
 @media (max-width: 500px) {
     #todo-form { flex-wrap: wrap; }
     input[type="text"] { width: 100%; order: 1; }

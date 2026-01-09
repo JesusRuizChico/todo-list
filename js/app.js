@@ -18,10 +18,8 @@ function addTask(e) {
     e.preventDefault();
     const taskText = todoInput.value.trim();
 
-    // Validación con animación SHAKE
     if (taskText === '') {
         todoInput.classList.add('shake');
-        // Quitamos la clase después de que termine la animación para poder usarla de nuevo
         setTimeout(() => {
             todoInput.classList.remove('shake');
         }, 500);
@@ -32,12 +30,12 @@ function addTask(e) {
     saveLocalTodos(taskText, false);
 
     todoInput.value = '';
-    updateUI(); // Actualiza contador y estado vacío
+    updateUI();
 }
 
 function manageTask(e) {
     const item = e.target;
-    // Usamos closest para detectar click en el botón o el icono dentro
+    // Detectar clicks
     const btnDelete = item.closest('.btn-delete');
     const btnCheck = item.closest('.btn-check');
     const todoElement = item.closest('.todo-item');
@@ -46,14 +44,15 @@ function manageTask(e) {
 
     // A. ELIMINAR
     if (btnDelete) {
-        if (confirm("¿Borrar esta Tareas?")) {
+        if (confirm("¿Borrar esta misión?")) {
             todoElement.classList.add('fall');
+            
+            // ELIMINAR DEL LOCALSTORAGE (Antes de borrar del HTML)
             removeLocalTodos(todoElement);
             
             todoElement.addEventListener('animationend', function() {
                 todoElement.remove();
                 updateUI();
-                // Forzar actualización del filtro
                 const event = { target: filterOption };
                 filterTodo(event);
             });
@@ -61,12 +60,11 @@ function manageTask(e) {
     }
 
     // B. COMPLETAR
-    if (btnCheck || item.tagName === 'SPAN') {
+    // Cambiamos item.tagName === 'SPAN' a verificar la clase especifica
+    if (btnCheck || item.classList.contains('todo-text')) {
         todoElement.classList.toggle('completed');
         updateLocalTodoState(todoElement);
         updateUI();
-        
-        // Actualizar filtro dinámicamente
         const event = { target: filterOption };
         filterTodo(event);
     }
@@ -101,14 +99,11 @@ function filterTodo(e) {
     });
 }
 
-// Función centralizada para actualizar la interfaz (Contador + Estado Vacío)
 function updateUI() {
     const totalTasks = todoList.children.length;
     const pendingTasks = document.querySelectorAll('.todo-item:not(.completed)').length;
-    
     countSpan.innerText = pendingTasks;
 
-    // Mostrar/Ocultar imagen de "Lista Vacía"
     if (totalTasks === 0) {
         emptyState.classList.remove('hidden');
     } else {
@@ -121,7 +116,6 @@ function createTaskElement(text, isCompleted) {
     li.classList.add('todo-item');
     if (isCompleted) li.classList.add('completed');
 
-    // Botón Check con icono
     const checkBtn = document.createElement('button');
     checkBtn.innerHTML = '<span class="material-icons-round">check</span>';
     checkBtn.classList.add('btn-check');
@@ -129,19 +123,19 @@ function createTaskElement(text, isCompleted) {
 
     const span = document.createElement('span');
     span.innerText = text;
+    // AGREGAMOS ESTA CLASE PARA IDENTIFICAR EL TEXTO CORRECTAMENTE
+    span.classList.add('todo-text'); 
     li.appendChild(span);
 
-    // Botón Delete con icono
     const deleteBtn = document.createElement('button');
     deleteBtn.innerHTML = '<span class="material-icons-round">delete</span>';
     deleteBtn.classList.add('btn-delete');
     li.appendChild(deleteBtn);
 
-    // Insertar arriba
     todoList.insertBefore(li, todoList.firstChild); 
 }
 
-// --- LOCAL STORAGE ---
+// --- LOCAL STORAGE CORREGIDO ---
 
 function checkLocalStorage() {
     return localStorage.getItem('todos') === null ? [] : JSON.parse(localStorage.getItem('todos'));
@@ -163,15 +157,21 @@ function getTodos() {
 
 function removeLocalTodos(todoElement) {
     let todos = checkLocalStorage();
-    const todoText = todoElement.querySelector('span').innerText;
-    // Quitamos solo el que coincide
+    
+    // CORRECCIÓN CRÍTICA: Buscar el elemento por la clase .todo-text
+    // Antes buscaba 'span' y encontraba el icono del check primero
+    const todoText = todoElement.querySelector('.todo-text').innerText;
+    
+    // Filtrar la tarea correcta
     const updatedTodos = todos.filter(todo => todo.text !== todoText);
     localStorage.setItem('todos', JSON.stringify(updatedTodos));
 }
 
 function updateLocalTodoState(todoElement) {
     let todos = checkLocalStorage();
-    const todoText = todoElement.querySelector('span').innerText;
+    
+    // CORRECCIÓN: Usar .todo-text aquí también
+    const todoText = todoElement.querySelector('.todo-text').innerText;
     const isCompleted = todoElement.classList.contains('completed');
     
     const todoIndex = todos.findIndex(todo => todo.text === todoText);
