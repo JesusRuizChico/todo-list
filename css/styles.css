@@ -64,11 +64,11 @@ footer {
     display: flex;
     gap: 10px;
     position: relative;
-    flex-wrap: wrap; /* Permite que baje si no hay espacio */
+    flex-wrap: wrap; 
 }
 
 input[type="text"] {
-    flex-grow: 1; /* Ocupa el espacio disponible */
+    flex-grow: 1; 
     padding: 15px;
     border: 2px solid var(--border-color);
     border-radius: 12px;
